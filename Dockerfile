@@ -12,10 +12,11 @@ RUN apk add --no-cache \
           su-exec \
           dcron \
           gzip \
-    && mkdir -p /scripts /backups
+    && mkdir -p /scripts
 
 COPY backup_full.sh /scripts/backup_full.sh
 COPY backup_incremental.sh /scripts/backup_incremental.sh
+COPY backup_incremental_base.sh /scripts/backup_incremental_base.sh
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /scripts/*.sh /entrypoint.sh
 

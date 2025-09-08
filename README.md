@@ -4,8 +4,8 @@ A simple, containerized solution for automated full and incremental backups of a
 
 ## Features
 
-- **Full Backups:** Scheduled `pg_dump` backups of your PostgreSQL database, compressed and stored in `/backups/full`.
-- **Incremental Backups:** Optionally archive PostgreSQL WAL files for point-in-time recovery, stored in `/backups/incremental`.
+- **Full Backups:** Scheduled `pg_dump` backups of your PostgreSQL database, compressed and stored in `/backups/full` or `/backups/$BACKUP_SUBDIR/full`.
+- **Incremental Backups:** Optionally perform a physical base backup (`pg_basebackup`) and archive PostgreSQL WAL files for point-in-time recovery. Base backups are stored in `/backups/base` or `/backups/$BACKUP_SUBDIR/base`, and WAL incrementals in `/backups/incremental` or `/backups/$BACKUP_SUBDIR/incremental`. Incrementals are retained only as long as their corresponding base backup exists.
 - **Retention Policies:** Automatically remove old backups based on configurable retention periods.
 - **Configurable Scheduling:** Use environment variables to control backup intervals via cron.
 - **Easy Integration:** Designed to run as a Docker container, with minimal configuration.
@@ -15,19 +15,21 @@ A simple, containerized solution for automated full and incremental backups of a
 
 ### Environment Variables
 
-| Variable                      | Description                                              | Default                |
-|-------------------------------|----------------------------------------------------------|------------------------|
-| `POSTGRES_HOST`               | PostgreSQL host                                          | (required)             |
-| `POSTGRES_PORT`               | PostgreSQL port                                          | (required)             |
-| `POSTGRES_USER`               | PostgreSQL user                                          | (required)             |
-| `POSTGRES_DB`                 | PostgreSQL database name                                 | (required)             |
-| `PGPASSWORD_FILE`             | Path to file containing the PostgreSQL password          | (required)             |
-| `ENABLE_INCREMENTAL`          | Enable incremental (WAL) backups (`true`/`false`)        | `true`                 |
-| `BACKUP_NAME`                 | Name for the backup file                                 | `backup`               |
-| `RETENTION_FULL_DAYS`         | Days to keep full backups                                | `7`                    |
-| `RETENTION_INC_DAYS`          | Days to keep incremental backups                         | `3`                    |
-| `BACKUP_FULL_INTERVAL`        | Cron schedule for full backups                           | `0 2 * * 0`            |
-| `BACKUP_INCREMENTAL_INTERVAL` | Cron schedule for incremental backups                    | `0 */6 * * *`          |
+| Variable                          | Description                                              | Default                |
+|-----------------------------------|----------------------------------------------------------|------------------------|
+| `POSTGRES_HOST`                   | PostgreSQL host                                          | (required)             |
+| `POSTGRES_PORT`                   | PostgreSQL port                                          | (required)             |
+| `POSTGRES_USER`                   | PostgreSQL user                                          | (required)             |
+| `POSTGRES_DB`                     | PostgreSQL database name                                 | (required)             |
+| `PGPASSWORD_FILE`                 | Path to file containing the PostgreSQL password          | (required)             |
+| `ENABLE_INCREMENTAL`              | Enable incremental (WAL) backups (`true`/`false`)        | `true`                 |
+| `BACKUP_NAME`                     | Name for the backup file                                 | `backup`               |
+| `RETENTION_FULL_DAYS`             | Days to keep full backups                                | `7`                    |
+| `RETENTION_INC_DAYS`              | Days to keep incremental backups                         | `3`                    |
+| `BACKUP_FULL_INTERVAL`            | Cron schedule for full backups                           | `0 2 1 * *`            |
+| `BACKUP_INCREMENTAL_BASE_INTERVAL`| Cron schedule for incremental base backups               | `0 3 * * 0`            |
+| `BACKUP_INCREMENTAL_INTERVAL`     | Cron schedule for incremental backups                    | `0 */6 * * *`          |
+| `BACKUP_SUBDIR`                   | Subdirectory for backups to be stored                    | (undefined)            |
 
 ### Volumes
 
@@ -43,8 +45,8 @@ docker run -d \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_DB=mydb \
   -e PGPASSWORD_FILE=/run/secrets/pgpassword \
-  -e RETENTION_FULL_DAYS=7 \
-  -e RETENTION_INC_DAYS=3 \
+  -e RETENTION_FULL_DAYS=30 \
+  -e RETENTION_INC_DAYS=10 \
   -e ENABLE_INCREMENTAL=true \
   -v /host/backups:/backups \
   -v /host/wal_archive:/wal_archive \
@@ -67,8 +69,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=mydb
       - PGPASSWORD_FILE=/run/secrets/pgpassword
-      - RETENTION_FULL_DAYS=7
-      - RETENTION_INC_DAYS=3
+      - RETENTION_FULL_DAYS=30
+      - RETENTION_INC_DAYS=10
       - ENABLE_INCREMENTAL=true
     volumes:
       - /host/backups:/backups
