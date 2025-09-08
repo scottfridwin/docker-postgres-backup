@@ -4,8 +4,8 @@ A simple, containerized solution for automated full and incremental backups of a
 
 ## Features
 
-- **Full Backups:** Scheduled `pg_dump` backups of your PostgreSQL database, compressed and stored in `/backups/full`.
-- **Incremental Backups:** Optionally archive PostgreSQL WAL files for point-in-time recovery, stored in `/backups/incremental`.
+- **Full Backups:** Scheduled `pg_dump` backups of your PostgreSQL database, compressed and stored in `/backups/full` or `/backups/$BACKUP_SUBDIR/full`.
+- **Incremental Backups:** Optionally archive PostgreSQL WAL files for point-in-time recovery, stored in `/backups/incremental` or `/backups/$BACKUP_SUBDIR/incremental`.
 - **Retention Policies:** Automatically remove old backups based on configurable retention periods.
 - **Configurable Scheduling:** Use environment variables to control backup intervals via cron.
 - **Easy Integration:** Designed to run as a Docker container, with minimal configuration.
@@ -28,6 +28,7 @@ A simple, containerized solution for automated full and incremental backups of a
 | `RETENTION_INC_DAYS`          | Days to keep incremental backups                         | `3`                    |
 | `BACKUP_FULL_INTERVAL`        | Cron schedule for full backups                           | `0 2 * * 0`            |
 | `BACKUP_INCREMENTAL_INTERVAL` | Cron schedule for incremental backups                    | `0 */6 * * *`          |
+| `BACKUP_SUBDIR`               | Subdirectory for backups to be stored                    | (undefined)            |
 
 ### Volumes
 

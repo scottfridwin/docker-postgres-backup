@@ -12,7 +12,7 @@ RUN apk add --no-cache \
           su-exec \
           dcron \
           gzip \
-    && mkdir -p /scripts /backups
+    && mkdir -p /scripts
 
 COPY backup_full.sh /scripts/backup_full.sh
 COPY backup_incremental.sh /scripts/backup_incremental.sh

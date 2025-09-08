@@ -1,8 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
+BACKUP_SUBDIR="${BACKUP_SUBDIR:-}"
+if [ -n "$BACKUP_SUBDIR" ]; then
+    BASE_BACKUP_DIR="/backups/$BACKUP_SUBDIR"
+else
+    BASE_BACKUP_DIR="/backups"
+fi
+
 DATE=$(date +%F_%H-%M-%S)
-DEST_DIR="/backups/incremental/$DATE"
+DEST_DIR="$BASE_BACKUP_DIR/incremental/$DATE"
 mkdir -p "$DEST_DIR"
 
 echo "[$(date)] Performing incremental backup..."
@@ -11,7 +18,7 @@ echo "[$(date)] Performing incremental backup..."
 cp /wal_archive/* "$DEST_DIR/" || true
 
 # Apply retention on the incremental backups themselves
-find /backups/incremental -type d -mtime +${RETENTION_INC_DAYS} -exec rm -rf {} +
+find $BASE_BACKUP_DIR/incremental -type d -mtime +${RETENTION_INC_DAYS} -exec rm -rf {} +
 
 # Clean up WAL files using pg_archivecleanup
 # Determine the last WAL file to keep

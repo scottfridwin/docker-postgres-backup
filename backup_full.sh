@@ -1,8 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
+BACKUP_SUBDIR="${BACKUP_SUBDIR:-}"
+if [ -n "$BACKUP_SUBDIR" ]; then
+    BASE_BACKUP_DIR="/backups/$BACKUP_SUBDIR"
+else
+    BASE_BACKUP_DIR="/backups"
+fi
+
 DATE=$(date +%F_%H-%M-%S)
-DEST_DIR="/backups/full/$DATE"
+DEST_DIR="$BASE_BACKUP_DIR/full/$DATE"
 mkdir -p "$DEST_DIR"
 
 export PGPASSWORD=$(cat $PGPASSWORD_FILE)
@@ -14,6 +21,6 @@ pg_dump -h "${POSTGRES_HOST}" \
         "${POSTGRES_DB}" | gzip > "$DEST_DIR/$BACKUP_NAME.gz"
 
 # Apply retention
-find /backups/full -type d -mtime +${RETENTION_FULL_DAYS} -exec rm -rf {} +
+find $BASE_BACKUP_DIR/full -type d -mtime +${RETENTION_FULL_DAYS} -exec rm -rf {} +
 
 echo "[$(date)] Full backup completed."
