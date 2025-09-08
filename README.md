@@ -59,6 +59,7 @@ services:
   postgres-backup:
     image: fridwin/postgres-backup
     container_name: postgres-backup
+    user: "my_uid:my_gid" # Suggested, not required
     environment:
       - TZ=${TIME_ZONE}
       - POSTGRES_HOST=db
@@ -90,6 +91,20 @@ __TODO: Better examples for restore process. Possible commands that can be run w
 - **Full backup:** Unzip and restore with `pg_restore` or `psql`.
 - **Incremental backup:** Use full backup plus WAL files for point-in-time recovery.
 
+
+### Healthcheck
+
+The container includes a healthcheck that verifies:
+
+1. Cron is running
+2. The last backup completed successfully
+3. Optionally, the last backup is recent (if `MAX_AGE` is set)
+
+```yaml
+HEALTHCHECK --interval=5m --timeout=10s --start-period=1m CMD /healthcheck.sh
+```
+
+---
 ## License
 
 MIT License © 2025 Scott Fridlund
