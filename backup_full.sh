@@ -10,17 +10,25 @@ fi
 
 DATE=$(date +%F_%H-%M-%S)
 DEST_DIR="$BASE_BACKUP_DIR/full/$DATE"
-mkdir -p "$DEST_DIR"
+if ! mkdir -p "$DEST_DIR"; then
+    echo "[ERROR] Failed to create directory $DEST_DIR"
+    exit 1
+fi
 
 export PGPASSWORD=$(cat $PGPASSWORD_FILE)
 
-echo "[$(date)] Performing full backup..."
-pg_dump -h "${POSTGRES_HOST}" \
+echo "[INFO] Performing full backup..."
+if ! pg_dump -h "${POSTGRES_HOST}" \
         -p "${POSTGRES_PORT}" \
         -U "${POSTGRES_USER}" \
-        "${POSTGRES_DB}" | gzip > "$DEST_DIR/$BACKUP_NAME.gz"
+        "${POSTGRES_DB}" | gzip > "$DEST_DIR/$BACKUP_NAME.gz"; then
+    echo "[ERROR] $1"
+    exit 1
+fi
 
 # Apply retention
-find $BASE_BACKUP_DIR/full -type d -mtime +${RETENTION_FULL_DAYS} -exec rm -rf {} +
+if ! find "$BASE_BACKUP_DIR/full" -type d -mtime +"${RETENTION_FULL_DAYS}" -exec rm -rf {} +; then
+    echo "[WARNING] Retention cleanup failed"
+fi
 
-echo "[$(date)] Full backup completed."
+echo "[INFO] Full backup completed."
