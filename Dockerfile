@@ -20,6 +20,6 @@ COPY backup_incremental_base.sh /scripts/backup_incremental_base.sh
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /scripts/*.sh /entrypoint.sh
 
-HEALTHCHECK --interval=1m --timeout=10s --start-period=1m --retries=3 CMD pgrep crond >/dev/null && [ -d /backups ] && [ -w /backups ]
+HEALTHCHECK --interval=1m --timeout=10s --start-period=1m --retries=3 CMD ps | grep -q '[c]rond' && [ -d /backups ] && [ -w /backups ]
 
 ENTRYPOINT ["/entrypoint.sh"]
